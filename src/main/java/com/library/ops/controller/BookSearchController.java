@@ -27,16 +27,20 @@ public class BookSearchController {
     public ResponseEntity<BookBO> findBookByIsbn(@PathVariable(required = true) String isbn)
             throws BookSearchException {
         BookBO bookBO = bookSearchService.getBookByIsbn(isbn);
-        if(bookBO==null){
-            throw new BookSearchException("No book found for ISBN "+isbn, HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(bookBO, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/",produces = {"application/JSON"})
-    public ResponseEntity<List<BookBO>> searchBooksByParams(@RequestParam(value = "title", required = false) String title,
-                                                 @RequestParam(value = "author", required = false) String author) throws BookSearchException {
-        List<BookBO> bookBOList = bookSearchService.searchBooksByParams(title, author);
+    @GetMapping(produces = {"application/JSON"})
+    public ResponseEntity<List<BookBO>> searchBooksByParams(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "author", required = false) String author,
+            @RequestParam(value = "tags", required = false) String tags) throws BookSearchException {
+        List<BookBO> bookBOList;
+        if(tags!=null && !tags.isEmpty()){
+            bookBOList = bookSearchService.searchBooksByTags(tags);
+        }else{
+            bookBOList = bookSearchService.searchBooksByParams(title, author);
+        }
         return new ResponseEntity<>(bookBOList, HttpStatus.OK);
     }
 }

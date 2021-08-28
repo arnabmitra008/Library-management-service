@@ -13,4 +13,5 @@ import java.util.List;
 public interface BookTagMappingRepository extends JpaRepository<BookTagMapping, Long> {
     List<BookTagMapping> findAllByIsbn(String isbn);
     List<BookTagMapping> findAllByTagDesc(String tagDesc);
+    List<BookTagMapping> findAllByTagDescIn(List<String> tags);
 }
