@@ -53,19 +53,17 @@ public class ManageBooksController {
 
     @PostMapping(consumes = {"multipart/form-data"}, produces = {"text/plain"})
     public ResponseEntity<String> insertBooks(
-            @RequestPart(value = "file") MultipartFile file) throws ManageBooksException {
-        if (null == file.getOriginalFilename()) {
+            @RequestPart(value = "file") MultipartFile file) throws ManageBooksException,IOException {
+        if (file.getOriginalFilename()==null || file.getOriginalFilename().isEmpty()) {
             throw new ManageBooksException("File name is missing", HttpStatus.BAD_REQUEST);
         }
-        try {
-            byte[] bytes = file.getBytes();
-            Path path = Paths.get("./build/tmp/"+file.getOriginalFilename());
-            Files.write(path, bytes);
-
-
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+        if(file.isEmpty()){
+            throw new ManageBooksException("File is empty", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>("Success", HttpStatus.OK);
+        byte[] bytes = file.getBytes();
+        Path path = Paths.get("./build/tmp/"+file.getOriginalFilename());
+        Files.write(path, bytes);
+        manageBooksService.insertBooksFromCSV(path);
+        return new ResponseEntity<>("Books loaded successfully", HttpStatus.OK);
     }
 }

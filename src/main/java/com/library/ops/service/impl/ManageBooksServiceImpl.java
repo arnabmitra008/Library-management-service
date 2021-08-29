@@ -13,9 +13,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,6 +108,79 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         return bookBOList;
     }
 
+    @Override
+    public void insertBooksFromCSV(Path path) throws ManageBooksException, IOException {
+        List<Book> books = new ArrayList<>();
+        List<BookTagMapping> bookTagMappings = new ArrayList<>();
+        Set<String> isbns = new HashSet<>();
+        try {
+            BufferedReader br = Files.newBufferedReader(path,StandardCharsets.US_ASCII);
+            String line = br.readLine();
+            while (line != null) {
+                String[] attributes = line.split(",");
+                if(isAttributesValid(attributes)){
+                    if(!isbns.contains(attributes[0])){
+                        Book book = createBook(attributes);
+                        books.add(book);
+                        List<BookTagMapping> mappings = createBookTagMapping(attributes);
+                        bookTagMappings.addAll(mappings);
+                        isbns.add(attributes[0]);
+                    }
+                }else{
+                    throw new ManageBooksException("The CSV file has improper data", HttpStatus.BAD_REQUEST);
+                }
+                line = br.readLine();
+            }
+            if(books.size()>0){
+                bookRepository.saveAll(books);
+            }
+            if(bookTagMappings.size()>0){
+                bookTagMappingRepository.saveAll(bookTagMappings);
+            }
+        } catch (IOException ioe) {
+            throw new ManageBooksException("Exception while parsing CSV File during inserting data",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (ManageBooksException e) {
+            throw e;
+        } catch (Exception ex) {
+            throw new ManageBooksException("Exception while inserting books in DB",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }finally {
+            Files.delete(path);
+        }
+    }
+
+    private Book createBook(String[] attributes){
+        Book book = new Book();
+        book.setIsbn(attributes[0]);
+        book.setTitle(attributes[1]);
+        book.setAuthor(attributes[2]);
+        book.setCreatedBy("CSVFile");
+        book.setUpdatedBy("CSVFile");
+        Date date = new Date();
+        book.setCreationDate(new Timestamp(date.getTime()));
+        book.setUpdatedDate(new Timestamp(date.getTime()));
+        return book;
+    }
+
+    private List<BookTagMapping> createBookTagMapping(String[] attributes){
+        BookTagMapping bookTagMapping = null;
+        List<BookTagMapping> mappings = new ArrayList<>();
+        String[] bookTags = attributes[3].split("\\|");
+        for(String bookTag : bookTags){
+            bookTagMapping = new BookTagMapping();
+            bookTagMapping.setIsbn(attributes[0]);
+            bookTagMapping.setTagDesc(bookTag);
+            bookTagMapping.setCreatedBy("CSVFile");
+            bookTagMapping.setUpdatedBy("CSVFile");
+            Date date = new Date();
+            bookTagMapping.setCreationDate(new Timestamp(date.getTime()));
+            bookTagMapping.setUpdatedDate(new Timestamp(date.getTime()));
+            mappings.add(bookTagMapping);
+        }
+        return mappings;
+    }
+
     private List<String> getTagsForBook(String isbn) {
         List<BookTagMapping> bookTags = bookTagMappingRepository.findAllByIsbn(isbn);
         List<String> tags = null;
@@ -110,6 +192,18 @@ public class ManageBooksServiceImpl implements ManageBooksService {
 
     private boolean isNullOrEmpty(String str){
         return (str==null || str.isEmpty());
+    }
+
+    private boolean isAttributesValid(String[] attributes){
+        if(attributes.length<4)
+            return false;
+
+        for(int i=0; i<attributes.length; i++){
+            if(attributes[i]==null || attributes[i].isEmpty()){
+                return false;
+            }
+        }
+        return true;
     }
 
 }
