@@ -1,7 +1,6 @@
 package com.library.ops.repository;
 
 import com.library.ops.entity.Book;
-import com.library.ops.entity.BookTagMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
