@@ -8,8 +8,8 @@ servers:
 paths:
   /books:
     get:
-      description: 
-        Gets books by - 
+      description:
+        Gets books by -
         tags, title, author or a combination of title and author
       parameters:
         - name: author
@@ -29,7 +29,7 @@ paths:
           example: SciFi,Mythology
       responses:
         '200':
-          description: Auto generated using Swagger Inspector
+          description: SUCCESS
           content:
             application/json:
               schema:
@@ -54,7 +54,7 @@ paths:
                     Meluha","author":"Amish","tags":["Religion","Myth"]},{"isbn":"djksan483","title":"Wings
                     of Fire","author":"APJ Abdul Kalam","tags":["Motivation"]}]
         '400':
-          description: Auto generated using Swagger Inspector
+          description: BAD REQUEST
           content:
             application/json:
               schema:
@@ -92,7 +92,7 @@ paths:
                     format: binary
       responses:
         '200':
-          description: Auto generated using Swagger Inspector
+          description: SUCCESS
           content:
             text/plain;charset=UTF-8:
               schema:
@@ -115,7 +115,7 @@ paths:
           example: jdafb8371
       responses:
         '200':
-          description: Auto generated using Swagger Inspector
+          description: SUCCESS
           content:
             application/json:
               schema:
@@ -132,7 +132,7 @@ paths:
                     items:
                       type: string
               examples:
-                '1':
+                'With proper ISBN':
                   value: >-
                     {"isbn":"jdafb8371","title":"Immortals of
                     Meluha","author":"Amish","tags":["Religion","Myth"]}
