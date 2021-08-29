@@ -12,7 +12,8 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookSearchExceptionEntity {
+public class ManageBooksExceptionEntity {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     protected String userMessage;
 }
+

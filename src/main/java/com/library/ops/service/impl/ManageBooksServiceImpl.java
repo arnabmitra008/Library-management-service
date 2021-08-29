@@ -3,11 +3,11 @@ package com.library.ops.service.impl;
 import com.library.ops.bo.BookBO;
 import com.library.ops.entity.Book;
 import com.library.ops.entity.BookTagMapping;
-import com.library.ops.exception.BookSearchException;
+import com.library.ops.exception.ManageBooksException;
 import com.library.ops.mapper.BooksMapper;
 import com.library.ops.repository.BookRepository;
 import com.library.ops.repository.BookTagMappingRepository;
-import com.library.ops.service.BookSearchService;
+import com.library.ops.service.ManageBooksService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class BookSearchServiceImpl implements BookSearchService {
+public class ManageBooksServiceImpl implements ManageBooksService {
 
     @Autowired
     private BookRepository bookRepository;
@@ -30,9 +30,9 @@ public class BookSearchServiceImpl implements BookSearchService {
     private BooksMapper booksMapper;
 
     @Override
-    public BookBO getBookByIsbn(String isbn) throws BookSearchException {
+    public BookBO getBookByIsbn(String isbn) throws ManageBooksException {
         if(isNullOrEmpty(isbn)){
-            throw new BookSearchException("ISBN field is empty", HttpStatus.BAD_REQUEST);
+            throw new ManageBooksException("ISBN field is empty", HttpStatus.BAD_REQUEST);
         }
         BookBO bookBO = null;
         List<Book> books = bookRepository.findByIsbn(isbn);
@@ -40,26 +40,26 @@ public class BookSearchServiceImpl implements BookSearchService {
             List<String> tags = getTagsForBook(isbn);
             bookBO = booksMapper.convertBookEntityToBookBO(books.get(0), tags);
         }else{
-            throw new BookSearchException("No book found for ISBN "+isbn, HttpStatus.BAD_REQUEST);
+            throw new ManageBooksException("No book found for ISBN "+isbn, HttpStatus.BAD_REQUEST);
         }
         return bookBO;
     }
 
     @Override
-    public List<BookBO> searchBooksByParams(String title, String author) throws BookSearchException {
+    public List<BookBO> searchBooksByParams(String title, String author) throws ManageBooksException {
         List<BookBO> bookBOList = new ArrayList<>();
         if(!isNullOrEmpty(title)){
             List<Book> books = bookRepository.findByTitle(title);
             if(books!=null && !books.isEmpty()){
                 if(!isNullOrEmpty(author) && !books.get(0).getAuthor().equalsIgnoreCase(author)){
-                    throw new BookSearchException("The title and author combination does not match",
+                    throw new ManageBooksException("The title and author combination does not match",
                             HttpStatus.BAD_REQUEST);
                 }
                 List<String> tags = getTagsForBook(books.get(0).getIsbn());
                 BookBO bookBO = booksMapper.convertBookEntityToBookBO(books.get(0), tags);
                 bookBOList.add(bookBO);
             }else{
-                throw new BookSearchException("No book found with the given title "+title,
+                throw new ManageBooksException("No book found with the given title "+title,
                         HttpStatus.BAD_REQUEST);
             }
         }else if(!isNullOrEmpty(author)){
@@ -71,17 +71,17 @@ public class BookSearchServiceImpl implements BookSearchService {
                     bookBOList.add(bookBO);
                 }
             }else{
-                throw new BookSearchException("No book found with the given author "+author,
+                throw new ManageBooksException("No book found with the given author "+author,
                         HttpStatus.BAD_REQUEST);
             }
         }else{
-            throw new BookSearchException("No search parameters provided", HttpStatus.BAD_REQUEST);
+            throw new ManageBooksException("No search parameters provided", HttpStatus.BAD_REQUEST);
         }
         return bookBOList;
     }
 
     @Override
-    public List<BookBO> searchBooksByTags(String tags) throws BookSearchException {
+    public List<BookBO> searchBooksByTags(String tags) throws ManageBooksException {
         List<BookBO> bookBOList = new ArrayList<>();
         List<String> tagList = Arrays.asList(tags.split(","));
         List<BookTagMapping> mappings = bookTagMappingRepository.findAllByTagDescIn(tagList);
@@ -94,7 +94,7 @@ public class BookSearchServiceImpl implements BookSearchService {
                 bookBOList.add(bookBO);
             }
         }else{
-            throw new BookSearchException("No books found with the provided tags", HttpStatus.BAD_REQUEST);
+            throw new ManageBooksException("No books found with the provided tags", HttpStatus.BAD_REQUEST);
         }
         return bookBOList;
     }

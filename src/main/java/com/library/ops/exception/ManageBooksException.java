@@ -3,28 +3,28 @@ package com.library.ops.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-public class BookSearchException extends Exception {
+public class ManageBooksException extends Exception {
 
     @Getter
     private HttpStatus httpStatus;
 
-    public BookSearchException() {
+    public ManageBooksException() {
         super();
     }
 
-    public BookSearchException(String message, Throwable cause) {
+    public ManageBooksException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public BookSearchException(String message) {
+    public ManageBooksException(String message) {
         super(message);
     }
 
-    public BookSearchException(Throwable cause) {
+    public ManageBooksException(Throwable cause) {
         super(cause);
     }
 
-    public BookSearchException(String message, HttpStatus httpStatus) {
+    public ManageBooksException(String message, HttpStatus httpStatus) {
         super(message);
         this.httpStatus=httpStatus;
     }
