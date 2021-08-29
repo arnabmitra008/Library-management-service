@@ -9,10 +9,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 @Slf4j
-public class BookSearchExceptionHandler extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(BookSearchException.class)
-    public ResponseEntity<BookSearchExceptionEntity> handleAccountException(BookSearchException ex) {
-        BookSearchExceptionEntity entity = BookSearchExceptionEntity.builder()
+public class ManageBooksExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(ManageBooksException.class)
+    public ResponseEntity<ManageBooksExceptionEntity> handleAccountException(ManageBooksException ex) {
+        ManageBooksExceptionEntity entity = ManageBooksExceptionEntity.builder()
                 .userMessage(ex.getMessage())
                 .build();
         return new ResponseEntity<>(entity, ex.getHttpStatus());
