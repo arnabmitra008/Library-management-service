@@ -12,7 +12,7 @@ Library Management Service API supports read and write operations for the manage
 | Gradle | 6.7.1 |
 | Intellij Idea (IDE) | 2020.3 |
 
-#Git repository link
+# Git repository link
 Below is the link to clone the Library-Management-Service repo in local IDE :
 
 https://github.com/arnabmitra008/Library-management-service.git
