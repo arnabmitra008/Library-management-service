@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class ManageBooksExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ManageBooksException.class)
-    public ResponseEntity<ManageBooksExceptionEntity> handleAccountException(ManageBooksException ex) {
+    public ResponseEntity<ManageBooksExceptionEntity> handleBooksException(ManageBooksException ex) {
         ManageBooksExceptionEntity entity = ManageBooksExceptionEntity.builder()
                 .userMessage(ex.getMessage())
                 .build();
