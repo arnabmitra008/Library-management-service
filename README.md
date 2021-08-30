@@ -38,6 +38,11 @@ Generating a Spring boot jar
 ./gradlew bootJar
 ```
   
+# Database Details
+Once the server is started, H2 database UI can be accessed using the below link (no credentials required) :
+
+http://localhost:8080/h2
+
 # Swagger Documentation
 Below is the link to view Swagger YAML file : 
 
@@ -52,4 +57,13 @@ https://github.com/arnabmitra008/Library-management-service/blob/master/src/main
 Each of the lines in CSV file is in below format :
 
 {ISBN},{TITLE},{AUTHOR},{TAGS}
+
+# Future enhancement scopes
+| Description | Checklist (Y/N) |
+|-------------|-----------------|
+| Adding messages in properties file |  |
+| Logging enhancements |  |
+| Unit test suite enrichment |  |
+| CORS enhancement in Swagger | |
+
  

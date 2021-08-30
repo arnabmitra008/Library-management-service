@@ -126,6 +126,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         List<BookTagMapping> bookTagMappings = new ArrayList<>();
         Set<String> isbns = new HashSet<>();
         try {
+            isbns = getAllIsbns();
             BufferedReader br = Files.newBufferedReader(path,StandardCharsets.US_ASCII);
             String line = br.readLine();
             while (line != null) {
@@ -137,6 +138,8 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                         List<BookTagMapping> mappings = createBookTagMapping(attributes);
                         bookTagMappings.addAll(mappings);
                         isbns.add(attributes[0]);
+                    }else{
+                        log.error("The ISBN "+attributes[0]+" is already present in DB. Hence skipping insertion.");
                     }
                 }else{
                     log.error("The CSV file has improper data as one of the attributes is missing in the file");
@@ -151,13 +154,13 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                 bookTagMappingRepository.saveAll(bookTagMappings);
             }
         } catch (IOException ioe) {
-            log.error("Exception while parsing CSV File during inserting data");
+            log.error("Exception while parsing CSV File during inserting data", ioe);
             throw new ManageBooksException("Exception while parsing CSV File during inserting data",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ManageBooksException e) {
             throw e;
         } catch (Exception ex) {
-            log.error("Exception while inserting books in DB");
+            log.error("Exception while inserting books in DB", ex);
             throw new ManageBooksException("Exception while inserting books in DB",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }finally {
@@ -203,6 +206,15 @@ public class ManageBooksServiceImpl implements ManageBooksService {
             tags = bookTags.stream().map(p->p.getTagDesc()).collect(Collectors.toList());
         }
         return tags;
+    }
+
+    private Set<String> getAllIsbns() {
+        List<Book> books = bookRepository.findAll();
+        Set<String> isbns = new HashSet<>();
+        if(books!=null && books.size()>0){
+            isbns = books.stream().map(p->p.getIsbn()).collect(Collectors.toSet());
+        }
+        return isbns;
     }
 
     private boolean isNullOrEmpty(String str){
