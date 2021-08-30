@@ -1,0 +1,174 @@
+openapi: 3.0.1
+info:
+  title: Library Management API
+  description: APIs to manage books in a library
+  version: '0.1'
+servers:
+  - url: http://localhost:8080
+paths:
+  /books:
+    get:
+      description:
+        Gets books by -
+        tags, title, author or a combination of title and author
+      parameters:
+        - name: author
+          in: query
+          schema:
+            type: string
+          example: Amisha
+        - name: title
+          in: query
+          schema:
+            type: string
+          example: Immortals of Meluha
+        - name: tags
+          in: query
+          schema:
+            type: string
+          example: SciFi,Mythology
+      responses:
+        '200':
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    isbn:
+                      type: string
+                    title:
+                      type: string
+                    author:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
+              examples:
+                'With valid title':
+                  value: >-
+                    [{"isbn":"jdafb8371","title":"Immortals of
+                    Meluha","author":"Amish","tags":["Religion","Myth"]}]
+                'With valid title and author':
+                  value: >-
+                    [{"isbn":"jdafb8371","title":"Immortals of
+                    Meluha","author":"Amish","tags":["Religion","Myth"]}]
+                'With valid author':
+                  value: >-
+                    [{"isbn":"jdafb8371","title":"Immortals of
+                    Meluha","author":"Amish","tags":["Religion","Myth"]}]
+                'With valid tags':
+                  value: >-
+                    [{"isbn":"jdafb8371","title":"Immortals of
+                    Meluha","author":"Amish","tags":["Religion","Myth"]},{"isbn":"djksan483","title":"Wings
+                    of Fire","author":"APJ Abdul Kalam","tags":["Motivation"]}]
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    type: string
+              examples:
+                'With invalid title':
+                  value: >-
+                    {"userMessage":"No book found with the given title
+                    Immortals"}
+                'With invalid title and author combination':
+                  value: >-
+                    {"userMessage":"The title and author combination does not
+                    match"}
+                'With invalid author':
+                  value: '{"userMessage":"No book found with the given author Amisha"}'
+                'With invalid tags':
+                  value: '{"userMessage":"No books found with the provided tags"}'
+      servers:
+        - url: http://localhost:8080
+    post:
+      description: Insert books from CSV file to DB
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: SUCCESS
+          content:
+            text/plain;charset=UTF-8:
+              schema:
+                type: string
+                example: Books loaded successfully
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    type: string
+              example:
+                {"userMessage":"The CSV file has improper data"}
+      servers:
+        - url: http://localhost:8080
+    servers:
+      - url: http://localhost:8080
+  /books/{isbn}:
+    get:
+      description: Get books by ISBN
+      parameters:
+        - in: path
+          name: isbn
+          schema:
+            type: string
+            minimum: 1
+          required: true
+          example: jdafb8371
+      responses:
+        '200':
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  author:
+                    type: string
+                  isbn:
+                    type: string
+                  title:
+                    type: string
+                  tags:
+                    type: array
+                    items:
+                      type: string
+              example:
+                {"isbn":"jdafb8371","title":"Immortals of
+                    Meluha","author":"Amish","tags":["Religion","Myth"]}
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    type: string
+              example:
+                {"userMessage":"No book found for ISBN jdafb8371"}
+      servers:
+        - url: http://localhost:8080
+    servers:
+      - url: http://localhost:8080
