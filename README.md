@@ -5,23 +5,25 @@ Library Management Service API supports read and write operations for the manage
 | Tech | Version |
 |------|---------|
 | Java | 8|
-| Springboot | 2.5.3|
+| Springboot | 2.5.4 |
 | H2 (In memory DB)|1.4.200 |
 | JUnit (with Mockito extn.) | 5|
 | Swagger (OpenAPI) | 3.0.1 |
+| Gradle | 6.7.1 |
+| Intellij Idea (IDE) | 2020.3 |
 
 #Git repository link
 Below is the link to clone the Library-Management-Service repo in local IDE :
 
 https://github.com/arnabmitra008/Library-management-service.git
 
-# Building
-To compile and run tests for the first time we can simply run a build clean.
+# Build steps
+To compile and run tests for the first time we can simply run a clean build in the terminal.
 ```sh
 ./gradlew clean build --refresh-dependencies
 ```
 
-To compile and run tests we can simply run a build clean.
+To compile and run tests we can simply run a clean build in the terminal.
 ```sh
 ./gradlew clean build
 ```
@@ -42,6 +44,12 @@ Below is the link to view Swagger YAML file :
 https://github.com/arnabmitra008/Library-management-service/blob/master/LibraryManagement_Swagger.yaml
 
 
+# Sample CSV file
 
+The sample CSV file can also be accessed from the below link :
+https://github.com/arnabmitra008/Library-management-service/blob/master/src/main/resources/books.csv
 
+Each of the lines in CSV file is in below format :
+
+{ISBN},{TITLE},{AUTHOR},{TAGS}
  
