@@ -40,7 +40,9 @@ public class ManageBooksServiceImpl implements ManageBooksService {
 
     @Override
     public BookBO getBookByIsbn(String isbn) throws ManageBooksException {
+        log.debug("Entered : getBookByIsbn for ISBN : "+isbn);
         if(isNullOrEmpty(isbn)){
+            log.error("ISBN field is empty");
             throw new ManageBooksException("ISBN field is empty", HttpStatus.BAD_REQUEST);
         }
         BookBO bookBO = null;
@@ -49,6 +51,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
             List<String> tags = getTagsForBook(isbn);
             bookBO = booksMapper.convertBookEntityToBookBO(books.get(0), tags);
         }else{
+            log.error("No book found for ISBN "+isbn);
             throw new ManageBooksException("No book found for ISBN "+isbn, HttpStatus.BAD_REQUEST);
         }
         return bookBO;
@@ -56,11 +59,14 @@ public class ManageBooksServiceImpl implements ManageBooksService {
 
     @Override
     public List<BookBO> searchBooksByParams(String title, String author) throws ManageBooksException {
+        log.debug("Entered : searchBooksByParams for title : "+title+" and author : "+author);
         List<BookBO> bookBOList = new ArrayList<>();
         if(!isNullOrEmpty(title)){
             List<Book> books = bookRepository.findByTitle(title);
             if(books!=null && !books.isEmpty()){
                 if(!isNullOrEmpty(author) && !books.get(0).getAuthor().equalsIgnoreCase(author)){
+                    log.error("The title and author combination does not match. Title : "+title+
+                            " and author : "+author);
                     throw new ManageBooksException("The title and author combination does not match",
                             HttpStatus.BAD_REQUEST);
                 }
@@ -68,6 +74,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                 BookBO bookBO = booksMapper.convertBookEntityToBookBO(books.get(0), tags);
                 bookBOList.add(bookBO);
             }else{
+                log.error("No book found with the given title "+title);
                 throw new ManageBooksException("No book found with the given title "+title,
                         HttpStatus.BAD_REQUEST);
             }
@@ -80,10 +87,12 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                     bookBOList.add(bookBO);
                 }
             }else{
+                log.error("No book found with the given author "+author);
                 throw new ManageBooksException("No book found with the given author "+author,
                         HttpStatus.BAD_REQUEST);
             }
         }else{
+            log.error("No title or author provided");
             throw new ManageBooksException("No search parameters provided", HttpStatus.BAD_REQUEST);
         }
         return bookBOList;
@@ -91,6 +100,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
 
     @Override
     public List<BookBO> searchBooksByTags(String tags) throws ManageBooksException {
+        log.debug("Entered : searchBooksByTags for tags : "+tags);
         List<BookBO> bookBOList = new ArrayList<>();
         List<String> tagList = Arrays.asList(tags.split(","));
         List<BookTagMapping> mappings = bookTagMappingRepository.findAllByTagDescIn(tagList);
@@ -103,6 +113,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                 bookBOList.add(bookBO);
             }
         }else{
+            log.error("No books found with the provided tags");
             throw new ManageBooksException("No books found with the provided tags", HttpStatus.BAD_REQUEST);
         }
         return bookBOList;
@@ -110,6 +121,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
 
     @Override
     public void insertBooksFromCSV(Path path) throws ManageBooksException, IOException {
+        log.debug("Entered : insertBooksFromCSV");
         List<Book> books = new ArrayList<>();
         List<BookTagMapping> bookTagMappings = new ArrayList<>();
         Set<String> isbns = new HashSet<>();
@@ -127,6 +139,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                         isbns.add(attributes[0]);
                     }
                 }else{
+                    log.error("The CSV file has improper data as one of the attributes is missing in the file");
                     throw new ManageBooksException("The CSV file has improper data", HttpStatus.BAD_REQUEST);
                 }
                 line = br.readLine();
@@ -138,11 +151,13 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                 bookTagMappingRepository.saveAll(bookTagMappings);
             }
         } catch (IOException ioe) {
+            log.error("Exception while parsing CSV File during inserting data");
             throw new ManageBooksException("Exception while parsing CSV File during inserting data",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (ManageBooksException e) {
             throw e;
         } catch (Exception ex) {
+            log.error("Exception while inserting books in DB");
             throw new ManageBooksException("Exception while inserting books in DB",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }finally {
