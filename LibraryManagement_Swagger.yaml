@@ -33,8 +33,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties: {}
+                type: array
+                items:
+                  type: object
+                  properties:
+                    isbn:
+                      type: string
+                    title:
+                      type: string
+                    author:
+                      type: string
+                    tags:
+                      type: array
+                      items:
+                        type: string
               examples:
                 'With valid title':
                   value: >-
@@ -98,6 +110,17 @@ paths:
               schema:
                 type: string
                 example: Books loaded successfully
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    type: string
+              example:
+                {"userMessage":"The CSV file has improper data"}
       servers:
         - url: http://localhost:8080
     servers:
@@ -131,11 +154,20 @@ paths:
                     type: array
                     items:
                       type: string
-              examples:
-                'With proper ISBN':
-                  value: >-
-                    {"isbn":"jdafb8371","title":"Immortals of
+              example:
+                {"isbn":"jdafb8371","title":"Immortals of
                     Meluha","author":"Amish","tags":["Religion","Myth"]}
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userMessage:
+                    type: string
+              example:
+                {"userMessage":"No book found for ISBN jdafb8371"}
       servers:
         - url: http://localhost:8080
     servers:
