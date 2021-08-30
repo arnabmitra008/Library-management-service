@@ -58,6 +58,9 @@ Each of the lines in CSV file is in below format :
 
 {ISBN},{TITLE},{AUTHOR},{TAGS}
 
+N.B. For providing multiple tags for a book, separate the tags by |(Pipe separator). 
+E.g. Fiction|Mythology
+
 # Future enhancement scopes
 | Description | Checklist (Y/N) |
 |-------------|-----------------|
