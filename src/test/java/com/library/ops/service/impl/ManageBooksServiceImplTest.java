@@ -56,10 +56,10 @@ class ManageBooksServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        getBooks();
-        getBookList();
         getBookTagMappings();
         getBookTagMappings2();
+        getBooks();
+        getBookList();
         getBookBO();
         getBookBO2();
         path = Paths.get("./build/tmp/books.csv");
@@ -68,7 +68,6 @@ class ManageBooksServiceImplTest {
     @Test
     public void shouldGetBookForValidIsbn() throws ManageBooksException {
         when(bookRepository.findByIsbn(anyString())).thenReturn(books);
-        when(bookTagMappingRepository.findAllByIsbn(anyString())).thenReturn(bookTagMappings);
         when(booksMapper.convertBookEntityToBookBO(any(Book.class),anyList())).thenReturn(bookBO);
         BookBO bookBO = manageBooksService.getBookByIsbn("3721hfda");
         assertEquals("3721hfda", bookBO.getIsbn());
@@ -87,7 +86,6 @@ class ManageBooksServiceImplTest {
     @Test
     public void shouldGetBooksForValidTitleOnly() throws ManageBooksException {
         when(bookRepository.findByTitle(anyString())).thenReturn(books);
-        when(bookTagMappingRepository.findAllByIsbn(anyString())).thenReturn(bookTagMappings);
         when(booksMapper.convertBookEntityToBookBO(any(Book.class),anyList())).thenReturn(bookBO);
         List<BookBO> bookBOList = manageBooksService.searchBooksByParams("Immortals of Meluha", null);
         assertEquals(1, bookBOList.size());
@@ -106,7 +104,6 @@ class ManageBooksServiceImplTest {
     @Test
     public void shouldGetBooksForValidTitleAndAuthor() throws ManageBooksException {
         when(bookRepository.findByTitle(anyString())).thenReturn(books);
-        when(bookTagMappingRepository.findAllByIsbn(anyString())).thenReturn(bookTagMappings);
         when(booksMapper.convertBookEntityToBookBO(any(Book.class),anyList())).thenReturn(bookBO);
         List<BookBO> bookBOList = manageBooksService.searchBooksByParams("Immortals of Meluha", "Amish");
         assertEquals(1, bookBOList.size());
@@ -126,7 +123,6 @@ class ManageBooksServiceImplTest {
     @Test
     public void shouldGetBooksForValidAuthor() throws ManageBooksException {
         when(bookRepository.findAllByAuthor(anyString())).thenReturn(books);
-        when(bookTagMappingRepository.findAllByIsbn(anyString())).thenReturn(bookTagMappings);
         when(booksMapper.convertBookEntityToBookBO(any(Book.class),anyList())).thenReturn(bookBO);
         List<BookBO> bookBOList = manageBooksService.searchBooksByParams(null, "Amish");
         assertEquals(1, bookBOList.size());
@@ -156,8 +152,6 @@ class ManageBooksServiceImplTest {
         mappings.addAll(bookTagMappings);
         mappings.addAll(bookTagMappings2);
         when(bookTagMappingRepository.findAllByTagDescIn(anyList())).thenReturn(mappings);
-        when(bookRepository.findDistinctByIsbnIn(anyList())).thenReturn(bookList);
-        when(bookTagMappingRepository.findAllByIsbn(anyString())).thenReturn(bookTagMappings, bookTagMappings2);
         when(booksMapper.convertBookEntityToBookBO(any(Book.class),anyList())).thenReturn(bookBO, bookBO2);
         List<BookBO> bookBOList = manageBooksService.searchBooksByTags("Myth,Motivation");
         assertEquals(2, bookBOList.size());
@@ -174,11 +168,11 @@ class ManageBooksServiceImplTest {
     @Test
     public void shouldInsertBooksFromCSVSuccessfullyIfValidPathIsGiven() throws ManageBooksException, IOException {
         createFile();
-        when(bookRepository.saveAll(anyList())).thenReturn(bookList);
-        when(bookTagMappingRepository.saveAll(anyList())).thenReturn(bookTagMappings);
+        when(bookRepository.save(any(Book.class))).thenReturn(bookList.get(0), bookList.get(1));
+        when(bookTagMappingRepository.saveAll(anyList())).thenReturn(bookTagMappings, bookTagMappings2);
         manageBooksService.insertBooksFromCSV(path);
-        verify(bookRepository).saveAll(anyList());
-        verify(bookTagMappingRepository).saveAll(anyList());
+        verify(bookRepository, times(2)).save(any(Book.class));
+        verify(bookTagMappingRepository, times(2)).saveAll(anyList());
     }
 
     @Test
@@ -195,6 +189,7 @@ class ManageBooksServiceImplTest {
         book.setIsbn("3721hfda");
         book.setAuthor("Amish");
         book.setTitle("Immortals of Meluha");
+        book.setBookTagMappingList(bookTagMappings);
         books.add(book);
     }
 
@@ -203,11 +198,13 @@ class ManageBooksServiceImplTest {
         book.setIsbn("3721hfda");
         book.setAuthor("Amish");
         book.setTitle("Immortals of Meluha");
+        book.setBookTagMappingList(bookTagMappings);
         bookList.add(book);
         Book book2 = new Book();
         book2.setIsbn("843239nfd");
         book2.setAuthor("APJ Abdul Kalam");
         book2.setTitle("Wings of Fire");
+        book2.setBookTagMappingList(bookTagMappings2);
         bookList.add(book2);
     }
 
@@ -215,6 +212,12 @@ class ManageBooksServiceImplTest {
         BookTagMapping bookTagMapping = new BookTagMapping();
         bookTagMapping.setIsbn("3721hfda");
         bookTagMapping.setTagDesc("Myth");
+        Book book = new Book();
+        book.setIsbn("3721hfda");
+        book.setAuthor("Amish");
+        book.setTitle("Immortals of Meluha");
+        book.setBookTagMappingList(bookTagMappings);
+        bookTagMapping.setBook(book);
         bookTagMappings.add(bookTagMapping);
     }
 
@@ -222,6 +225,12 @@ class ManageBooksServiceImplTest {
         BookTagMapping bookTagMapping = new BookTagMapping();
         bookTagMapping.setIsbn("843239nfd");
         bookTagMapping.setTagDesc("Motivation");
+        Book book2 = new Book();
+        book2.setIsbn("843239nfd");
+        book2.setAuthor("APJ Abdul Kalam");
+        book2.setTitle("Wings of Fire");
+        book2.setBookTagMappingList(bookTagMappings2);
+        bookTagMapping.setBook(book2);
         bookTagMappings2.add(bookTagMapping);
     }
 

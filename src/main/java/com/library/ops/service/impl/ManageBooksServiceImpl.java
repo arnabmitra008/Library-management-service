@@ -48,7 +48,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         BookBO bookBO = null;
         List<Book> books = bookRepository.findByIsbn(isbn);
         if(books!=null && books.size()>0){
-            List<String> tags = getTagsForBook(isbn);
+            List<String> tags = getTagsForBook(books.get(0));
             bookBO = booksMapper.convertBookEntityToBookBO(books.get(0), tags);
         }else{
             log.error("No book found for ISBN "+isbn);
@@ -70,7 +70,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                     throw new ManageBooksException("The title and author combination does not match",
                             HttpStatus.BAD_REQUEST);
                 }
-                List<String> tags = getTagsForBook(books.get(0).getIsbn());
+                List<String> tags = getTagsForBook(books.get(0));
                 BookBO bookBO = booksMapper.convertBookEntityToBookBO(books.get(0), tags);
                 bookBOList.add(bookBO);
             }else{
@@ -82,7 +82,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
             List<Book> books = bookRepository.findAllByAuthor(author);
             if(books!=null && !books.isEmpty()){
                 for(Book book : books){
-                    List<String> tags = getTagsForBook(book.getIsbn());
+                    List<String> tags = getTagsForBook(book);
                     BookBO bookBO = booksMapper.convertBookEntityToBookBO(book, tags);
                     bookBOList.add(bookBO);
                 }
@@ -105,10 +105,9 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         List<String> tagList = Arrays.asList(tags.split(","));
         List<BookTagMapping> mappings = bookTagMappingRepository.findAllByTagDescIn(tagList);
         if(mappings!=null && !mappings.isEmpty()){
-            List<String> isbns = mappings.stream().map(p->p.getIsbn()).collect(Collectors.toList());
-            List<Book> books = bookRepository.findDistinctByIsbnIn(isbns);
+            List<Book> books = mappings.stream().map(p->p.getBook()).collect(Collectors.toList());
             for(Book book : books){
-                List<String> bookTags = getTagsForBook(book.getIsbn());
+                List<String> bookTags = getTagsForBook(book);
                 BookBO bookBO = booksMapper.convertBookEntityToBookBO(book, bookTags);
                 bookBOList.add(bookBO);
             }
@@ -122,8 +121,6 @@ public class ManageBooksServiceImpl implements ManageBooksService {
     @Override
     public void insertBooksFromCSV(Path path) throws ManageBooksException, IOException {
         log.debug("Entered : insertBooksFromCSV");
-        List<Book> books = new ArrayList<>();
-        List<BookTagMapping> bookTagMappings = new ArrayList<>();
         Set<String> isbns = new HashSet<>();
         try {
             isbns = getAllIsbns();
@@ -134,9 +131,9 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                 if(isAttributesValid(attributes)){
                     if(!isbns.contains(attributes[0])){
                         Book book = createBook(attributes);
-                        books.add(book);
-                        List<BookTagMapping> mappings = createBookTagMapping(attributes);
-                        bookTagMappings.addAll(mappings);
+                        book = bookRepository.save(book);
+                        List<BookTagMapping> mappings = createBookTagMapping(attributes, book);
+                        bookTagMappingRepository.saveAll(mappings);
                         isbns.add(attributes[0]);
                     }else{
                         log.error("The ISBN "+attributes[0]+" is already present in DB. Hence skipping insertion.");
@@ -146,12 +143,6 @@ public class ManageBooksServiceImpl implements ManageBooksService {
                     throw new ManageBooksException("The CSV file has improper data", HttpStatus.BAD_REQUEST);
                 }
                 line = br.readLine();
-            }
-            if(books.size()>0){
-                bookRepository.saveAll(books);
-            }
-            if(bookTagMappings.size()>0){
-                bookTagMappingRepository.saveAll(bookTagMappings);
             }
         } catch (IOException ioe) {
             log.error("Exception while parsing CSV File during inserting data", ioe);
@@ -181,12 +172,13 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         return book;
     }
 
-    private List<BookTagMapping> createBookTagMapping(String[] attributes){
+    private List<BookTagMapping> createBookTagMapping(String[] attributes, Book book){
         BookTagMapping bookTagMapping = null;
         List<BookTagMapping> mappings = new ArrayList<>();
         String[] bookTags = attributes[3].split("\\|");
         for(String bookTag : bookTags){
             bookTagMapping = new BookTagMapping();
+            bookTagMapping.setBook(book);
             bookTagMapping.setIsbn(attributes[0]);
             bookTagMapping.setTagDesc(bookTag);
             bookTagMapping.setCreatedBy("CSVFile");
@@ -199,11 +191,10 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         return mappings;
     }
 
-    private List<String> getTagsForBook(String isbn) {
-        List<BookTagMapping> bookTags = bookTagMappingRepository.findAllByIsbn(isbn);
+    private List<String> getTagsForBook(Book book) {
         List<String> tags = null;
-        if(bookTags!=null && bookTags.size()>0){
-            tags = bookTags.stream().map(p->p.getTagDesc()).collect(Collectors.toList());
+        if(book.getBookTagMappingList()!=null && book.getBookTagMappingList().size()>0){
+            tags = book.getBookTagMappingList().stream().map(p->p.getTagDesc()).collect(Collectors.toList());
         }
         return tags;
     }
