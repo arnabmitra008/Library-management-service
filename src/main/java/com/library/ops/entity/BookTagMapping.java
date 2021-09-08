@@ -1,9 +1,13 @@
 package com.library.ops.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 
@@ -11,7 +15,7 @@ import java.sql.Timestamp;
 @Table(name = "book_tag_mapping")
 public class BookTagMapping {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     private String isbn;
     private String tagDesc;
@@ -19,6 +23,10 @@ public class BookTagMapping {
     private Timestamp creationDate;
     private String updatedBy;
     private Timestamp updatedDate;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    @JoinColumn(name = "book_id")
+    private Book book;
 
     public String getTagDesc() {
         return tagDesc;
@@ -66,5 +74,13 @@ public class BookTagMapping {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    public Book getBook() {
+        return book;
+    }
+
+    public void setBook(Book book) {
+        this.book = book;
     }
 }
