@@ -105,7 +105,7 @@ public class ManageBooksServiceImpl implements ManageBooksService {
         List<String> tagList = Arrays.asList(tags.split(","));
         List<BookTagMapping> mappings = bookTagMappingRepository.findAllByTagDescIn(tagList);
         if(mappings!=null && !mappings.isEmpty()){
-            List<Book> books = mappings.stream().map(p->p.getBook()).collect(Collectors.toList());
+            Set<Book> books = mappings.stream().map(p->p.getBook()).collect(Collectors.toSet());
             for(Book book : books){
                 List<String> bookTags = getTagsForBook(book);
                 BookBO bookBO = booksMapper.convertBookEntityToBookBO(book, bookTags);
